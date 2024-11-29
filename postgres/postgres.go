@@ -8,8 +8,8 @@ type ConnectDB struct {
 	db *sql.DB
 }
 
-func NewConnectDB(pathConfig string) *ConnectDB {
-	config, err := LoadConfig(pathConfig)
+func NewConnectDB() *ConnectDB {
+	config, err := LoadConfig()
 	if err != nil {
 		panic(err)
 	}

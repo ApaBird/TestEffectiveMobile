@@ -63,13 +63,13 @@ paths:
         "400":
           description: Invalid ID supplied
         "404":
-          description: Pet not found
+          description: Song not found
     post:
       tags:
       - song
       summary: Добавление новой песни
       description: Добавление новой песни
-      operationId: addPet
+      operationId: addSong
       requestBody:
         description: Информация для создания песни
         content:
@@ -93,7 +93,7 @@ paths:
       - song
       summary: Удаление песни
       description: Удаление песни
-      operationId: deletePet
+      operationId: deleteSong
       parameters:
       - name: id
         in: query
@@ -138,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                $ref: '#/components/schemas/Group'
         "400":
           description: Не указа ID песни
         "404":
@@ -146,15 +146,15 @@ paths:
     put:
       tags:
       - group
-      summary: Update an existing pet
-      description: Update an existing pet by Id
+      summary: Update an existing group
+      description: Update an existing group by Id
       operationId: updateGroup
       requestBody:
-        description: Update an existent pet in the store
+        description: Update an existent group in the store
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Song'
+              $ref: '#/components/schemas/Group'
         required: true
       responses:
         "200":
@@ -162,11 +162,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                $ref: '#/components/schemas/Group'
         "400":
           description: Invalid ID supplied
         "404":
-          description: Pet not found
+          description: group not found
     post:
       tags:
       - group
@@ -178,7 +178,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Song'
+              $ref: '#/components/schemas/Group'
         required: true
       responses:
         "200":
@@ -186,7 +186,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Song'
+                $ref: '#/components/schemas/Group'
         "400":
           description: Invalid input
         "422":

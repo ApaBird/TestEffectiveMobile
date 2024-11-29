@@ -2,8 +2,6 @@ package postgres
 
 import (
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type DBConfig struct {
@@ -15,11 +13,7 @@ type DBConfig struct {
 	Sslmode  string
 }
 
-func LoadConfig(path string) (*DBConfig, error) {
-	if err := godotenv.Load(path); err != nil {
-		return nil, err
-	}
-
+func LoadConfig() (*DBConfig, error) {
 	dbConfig := &DBConfig{
 		Host:     GetEnv("DB_HOST", "localhost"),
 		Port:     GetEnv("DB_PORT", "5432"),
