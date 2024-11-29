@@ -1,0 +1,305 @@
+openapi: 3.0.3
+info:
+  title: Онлайн библиотека песен
+  description: тестовое задание
+  termsOfService: http://localhost:8090/
+  contact:
+    email: apa.birds@mail.ru
+  version: 0.0.1
+servers:
+- url: http
+tags:
+- name: song
+- name: group
+paths:
+  /song:
+    get:
+      tags:
+      - song
+      summary: Получение песни по id
+      description: Получение песни по id
+      operationId: get song
+      parameters:
+      - name: id
+        in: query
+        description: id песни
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Не указа ID песни
+        "404":
+          description: Песня не найдена
+    put:
+      tags:
+      - song
+      summary: Обновление информации о песни
+      description: Обновление информации о песни
+      operationId: updateSong
+      requestBody:
+        description: Обновление информации о песни
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+    post:
+      tags:
+      - song
+      summary: Добавление новой песни
+      description: Добавление новой песни
+      operationId: addPet
+      requestBody:
+        description: Информация для создания песни
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+    delete:
+      tags:
+      - song
+      summary: Удаление песни
+      description: Удаление песни
+      operationId: deletePet
+      parameters:
+      - name: id
+        in: query
+        description: id песни
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+  /group:
+    get:
+      tags:
+      - group
+      summary: Получение песни по id
+      description: Получение песни по id
+      operationId: get group
+      parameters:
+      - name: id
+        in: query
+        description: id песни
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Не указа ID песни
+        "404":
+          description: Песня не найдена
+    put:
+      tags:
+      - group
+      summary: Update an existing pet
+      description: Update an existing pet by Id
+      operationId: updateGroup
+      requestBody:
+        description: Update an existent pet in the store
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Invalid ID supplied
+        "404":
+          description: Pet not found
+    post:
+      tags:
+      - group
+      summary: Добавление новой песни
+      description: Добавление новой песни
+      operationId: addGroup
+      requestBody:
+        description: Информация для создания песни
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Song'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Song'
+        "400":
+          description: Invalid input
+        "422":
+          description: Validation exception
+  /songList:
+    get:
+      tags:
+      - song
+      summary: Получение списка песен
+      description: Получение списка песен
+      operationId: songList
+      parameters:
+      - name: page
+        in: query
+        description: номер страницы
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          example: 1
+          default: 1
+      - name: volume
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          example: 10
+          default: 20
+      - name: songId
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+      - name: groupId
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: d76554bc-2c66-4de0-96e8-dcd2f10fd365
+      - name: groupName
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: Певец
+      - name: text
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: ляля
+      - name: link
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Song'
+                x-content-type: application/json
+        "400":
+          description: Не указан ID песни
+        "404":
+          description: Песня не найдена
+components:
+  schemas:
+    Song:
+      type: object
+      properties:
+        id:
+          type: string
+          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+        group_id:
+          type: string
+          example: d76554bc-2c66-4de0-96e8-dcd2f10fd365
+        text:
+          type: string
+          example: Ляляляляля
+        link:
+          type: string
+          example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+      example:
+        group_id: d76554bc-2c66-4de0-96e8-dcd2f10fd365
+        link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+        id: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+        text: Ляляляляля
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          example: d76554bc-2c66-4de0-96e8-dcd2f10fd365
+        name:
+          type: string
+          example: Певец
