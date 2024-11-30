@@ -22,11 +22,22 @@ func Logger(inner http.Handler, name string) http.Handler {
 		inner.ServeHTTP(w, r)
 
 		log.Printf(
-			"%s %s %s %s",
+			"[INFO] %s %s %s %s",
 			r.Method,
 			r.RequestURI,
 			name,
 			time.Since(start),
 		)
 	})
+}
+
+func DebugLogger(w http.ResponseWriter, r *http.Request, err error, code int) {
+	log.Printf(
+		"[ERROR] %s %s %d",
+		r.URL.String(),
+		err,
+		code,
+	)
+
+	http.Error(w, err.Error(), code)
 }

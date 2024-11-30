@@ -1,0 +1,207 @@
+basePath: /
+definitions:
+  server.InfoAddSong:
+    properties:
+      group:
+        type: string
+      song:
+        type: string
+    type: object
+  server.Song:
+    properties:
+      date:
+        type: string
+      group_id:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      song_name:
+        type: string
+      text:
+        type: string
+    type: object
+  server.VerseSong:
+    properties:
+      id:
+        type: string
+      text:
+        type: string
+      verses:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: тестовое задание
+  title: Онлайн библиотека песен
+  version: 0.0.1
+paths:
+  /song:
+    delete:
+      consumes:
+      - application/json
+      description: Удаление песни по id
+      operationId: deleteSong
+      parameters:
+      - description: id
+        in: query
+        name: string
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data
+          schema:
+            $ref: '#/definitions/server.InfoAddSong'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Удаление песни
+      tags:
+      - song
+    get:
+      description: Получение текста песни по куплетам
+      operationId: getSong
+      parameters:
+      - description: id
+        in: query
+        name: id
+        type: string
+      - description: номер куплета(припев считается куплетом)
+        in: query
+        name: verseNum
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data
+          schema:
+            $ref: '#/definitions/server.VerseSong'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получение текста песни
+      tags:
+      - song
+    post:
+      consumes:
+      - application/json
+      description: Добавление песни по названию и группе
+      operationId: addSong
+      parameters:
+      - description: data
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/server.InfoAddSong'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: data
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Добавление песни
+      tags:
+      - song
+  /songList:
+    get:
+      description: Получение текста песни по куплетам
+      operationId: getSongs
+      parameters:
+      - description: страница
+        in: query
+        name: page
+        type: integer
+      - description: кол-во на одной странице
+        in: query
+        name: volume
+        type: integer
+      - description: имя песни, поиск через ilike
+        in: query
+        name: songName
+        type: string
+      - description: поиск по id группы
+        in: query
+        name: groupId
+        type: string
+      - description: поиск по названию группы, поиск через ilike
+        in: query
+        name: groupName
+        type: string
+      - description: текст песни, поиск через ilike
+        in: query
+        name: text
+        type: string
+      - description: ссылка, поиск через ilike
+        in: query
+        name: link
+        type: string
+      - description: песни начиная с даты выпуска
+        in: query
+        name: dateStart
+        type: string
+      - description: песни до даты выпуска
+        in: query
+        name: dateEnd
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: список песен
+          schema:
+            items:
+              $ref: '#/definitions/server.Song'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получение списка песен
+      tags:
+      - song
+swagger: "2.0"

@@ -12,37 +12,49 @@ package server
 import (
 	"SongServer/postgres"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 )
 
+// @Summary		Добавление песни
+// @Tags		song
+// @Description	Добавление песни по названию и группе
+// @ID			addSong
+// @Accept		json
+// @Produce		json
+// @Param		input	body		InfoAddSong	true	"data"
+// @Success		200		{string}	id	"data"
+// @Failure		400,422	{string}	http.StatusUnprocessableEntity
+// @Failure		500		{string}	http.StatusInternalServerError
+// @Router		/song [post]
 func AddSong(w http.ResponseWriter, r *http.Request) {
 
 	song := InfoAddSong{}
 	if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 
 	if song.Group == "" || song.Song == "" {
-		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+		DebugLogger(w, r, fmt.Errorf("validation exception"), http.StatusUnprocessableEntity)
 	}
 
 	songInfo, err := RequestSong(song.Group, song.Song)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		DebugLogger(w, r, err, http.StatusNotFound)
 	}
 
 	db, err := postgres.NewConnectDB()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 	defer db.Close()
 
 	id, err := db.AddSong(song.Song, song.Group, songInfo.Text, songInfo.Link, songInfo.ReleaseDate)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		DebugLogger(w, r, err, http.StatusBadRequest)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -50,22 +62,33 @@ func AddSong(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(id))
 }
 
+//		@Summary		Удаление песни
+//		@Tags			song
+//		@Description	Удаление песни по id
+//		@ID				deleteSong
+//		@Accept			json
+//		@Produce		json
+//		@Param			string	query		string		false	"id"
+//		@Success		200		{object}	InfoAddSong	"data"
+//		@Failure		400,422	{string}	http.StatusUnprocessableEntity
+//		@Failure		500		{string}	http.StatusInternalServerError
+//	 	@Router			/song [delete]
 func DeleteSong(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 
 	if id == "" {
-		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+		DebugLogger(w, r, fmt.Errorf("validation exception"), http.StatusUnprocessableEntity)
 	}
 
 	db, err := postgres.NewConnectDB()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 	defer db.Close()
 
 	song, err := db.DeleteSong(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		DebugLogger(w, r, err, http.StatusBadRequest)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -80,31 +103,42 @@ func DeleteSong(w http.ResponseWriter, r *http.Request) {
 			Date:     song.Date,
 		},
 	); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 }
 
+// @Summary		Получение текста песни
+// @Tags			song
+// @Description	Получение текста песни по куплетам
+// @ID			getSong
+// @Produce		json
+// @Param		id	query		string		false	"id"
+// @Param		verseNum	query		int		false	"номер куплета(припев считается куплетом)"
+// @Success		200		{object}	VerseSong	"data"
+// @Failure		400,422	{string}	http.StatusUnprocessableEntity
+// @Failure		500		{string}	http.StatusInternalServerError
+// @Router			/song [get]
 func GetSong(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
-	cuplet := r.URL.Query().Get("cuplet")
+	verse := r.URL.Query().Get("verseNum")
 
 	if id == "" {
-		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+		DebugLogger(w, r, fmt.Errorf("validation exception"), http.StatusUnprocessableEntity)
 	}
-	cupletInt, err := strconv.Atoi(cuplet)
+	cupletInt, err := strconv.Atoi(verse)
 	if err != nil {
 		cupletInt = 0
 	}
 
 	db, err := postgres.NewConnectDB()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 	defer db.Close()
 
 	song, err := db.GetSong(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		DebugLogger(w, r, err, http.StatusBadRequest)
 	}
 
 	cuplets := strings.Split(song.Text, "\n\n")
@@ -115,16 +149,34 @@ func GetSong(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(
-		map[string]interface{}{
-			"id":      song.Id,
-			"cuplet":  cuplets[cupletInt],
-			"cuplets": len(cuplets),
+		VerseSong{
+			Id:     song.Id,
+			Verse:  cuplets[cupletInt],
+			Verses: len(cuplets),
 		},
 	); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 }
 
+// @Summary		Получение списка песен
+// @Tags		song
+// @Description	Получение текста песни по куплетам
+// @ID			getSongs
+// @Produce		json
+// @Param		page		query		int		false	"страница"
+// @Param		volume		query		int		false	"кол-во на одной странице"
+// @Param		songName	query		string	false	"имя песни, поиск через ilike"
+// @Param		groupId		query		string	false	"поиск по id группы"
+// @Param		groupName	query		string	false	"поиск по названию группы, поиск через ilike"
+// @Param		text		query		string	false	"текст песни, поиск через ilike"
+// @Param		link		query		string	false	"ссылка, поиск через ilike"
+// @Param		dateStart	query		string	false	"песни начиная с даты выпуска"
+// @Param		dateEnd		query		string	false	"песни до даты выпуска"
+// @Success		200		{array}		Song	"список песен"
+// @Failure		400,422	{string}	http.StatusUnprocessableEntity
+// @Failure		500		{string}	http.StatusInternalServerError
+// @Router			/songList [get]
 func SongList(w http.ResponseWriter, r *http.Request) {
 
 	page := r.URL.Query().Get("page")
@@ -149,7 +201,7 @@ func SongList(w http.ResponseWriter, r *http.Request) {
 
 	db, err := postgres.NewConnectDB()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 	defer db.Close()
 
@@ -163,7 +215,7 @@ func SongList(w http.ResponseWriter, r *http.Request) {
 		DateEnd:   dateEnd,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		DebugLogger(w, r, err, http.StatusBadRequest)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -181,30 +233,42 @@ func SongList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 }
+
+// @Summary		Обновление песни
+// @Tags		song
+// @Description	Обновление песни
+// @ID			updateSong
+// @Accept		json
+// @Produce		json
+// @Param		song	body		Song	true	"песня"
+// @Success		200	{object}	Song
+// @Failure		400,422	{string}	http.StatusUnprocessableEntity
+// @Failure		500		{string}	http.StatusInternalServerError
+// @Router			/song [put]
 
 func UpdateSong(w http.ResponseWriter, r *http.Request) {
 	var song Song
 
 	if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 
 	if song.Id == "" || song.Date == "" || song.Text == "" {
-		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+		DebugLogger(w, r, fmt.Errorf("validation exception"), http.StatusUnprocessableEntity)
 	}
 
 	db, err := postgres.NewConnectDB()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 	defer db.Close()
 
 	updatedSong, err := db.UpdateSong(song.Id, song.SongName, song.GroupId, song.Text, song.Link, song.Date)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		DebugLogger(w, r, err, http.StatusBadRequest)
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -219,7 +283,7 @@ func UpdateSong(w http.ResponseWriter, r *http.Request) {
 			Date:     updatedSong.Date,
 		},
 	); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		DebugLogger(w, r, err, http.StatusInternalServerError)
 	}
 }
 

@@ -28,3 +28,9 @@ type InfoSong struct {
 	Text        string `json:"text,omitempty"`
 	Link        string `json:"link,omitempty"`
 }
+
+type VerseSong struct {
+	Id     string `json:"id,omitempty"`
+	Verse  string `json:"text,omitempty"`
+	Verses int    `json:"verses,omitempty"`
+}
