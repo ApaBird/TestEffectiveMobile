@@ -14,6 +14,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 func AddSong(w http.ResponseWriter, r *http.Request) {
@@ -32,10 +34,11 @@ func AddSong(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 	}
 
-	db := postgres.NewConnectDB()
+	db, err := postgres.NewConnectDB()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+	defer db.Close()
 
 	id, err := db.AddSong(song.Song, song.Group, songInfo.Text, songInfo.Link, songInfo.ReleaseDate)
 	if err != nil {
@@ -48,23 +51,176 @@ func AddSong(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteSong(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+
+	if id == "" {
+		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+	}
+
+	db, err := postgres.NewConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer db.Close()
+
+	song, err := db.DeleteSong(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(
+		Song{
+			Id:       song.Id,
+			SongName: song.SongName,
+			GroupId:  song.GroupId,
+			Text:     song.Text,
+			Link:     song.Link,
+			Date:     song.Date,
+		},
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func GetSong(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	cuplet := r.URL.Query().Get("cuplet")
+
+	if id == "" {
+		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+	}
+	cupletInt, err := strconv.Atoi(cuplet)
+	if err != nil {
+		cupletInt = 0
+	}
+
+	db, err := postgres.NewConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer db.Close()
+
+	song, err := db.GetSong(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	cuplets := strings.Split(song.Text, "\n\n")
+	if cupletInt > len(cuplets) {
+		cupletInt = len(cuplets) - 1
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(
+		map[string]interface{}{
+			"id":      song.Id,
+			"cuplet":  cuplets[cupletInt],
+			"cuplets": len(cuplets),
+		},
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func SongList(w http.ResponseWriter, r *http.Request) {
+
+	page := r.URL.Query().Get("page")
+	volume := r.URL.Query().Get("volume")
+	songName := r.URL.Query().Get("songName")
+	groupId := r.URL.Query().Get("groupId")
+	groupName := r.URL.Query().Get("groupName")
+	text := r.URL.Query().Get("text")
+	link := r.URL.Query().Get("link")
+	dateStart := r.URL.Query().Get("dateStart")
+	dateEnd := r.URL.Query().Get("dateEnd")
+
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		pageInt = 1
+	}
+
+	volumeInt, err := strconv.Atoi(volume)
+	if err != nil {
+		volumeInt = 20
+	}
+
+	db, err := postgres.NewConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer db.Close()
+
+	songs, err := db.GetSongs(pageInt, volumeInt, postgres.FilterSongList{
+		SongName:  songName,
+		GroupId:   groupId,
+		GroupName: groupName,
+		Text:      text,
+		Link:      link,
+		DateStart: dateStart,
+		DateEnd:   dateEnd,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	resp := make([]Song, len(songs))
+	for i, song := range songs {
+		resp[i] = Song{
+			Id:       song.Id,
+			SongName: song.SongName,
+			GroupId:  song.GroupId,
+			Text:     song.Text,
+			Link:     song.Link,
+			Date:     song.Date,
+		}
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func UpdateSong(w http.ResponseWriter, r *http.Request) {
+	var song Song
+
+	if err := json.NewDecoder(r.Body).Decode(&song); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	if song.Id == "" || song.Date == "" || song.Text == "" {
+		http.Error(w, "Validation exception", http.StatusUnprocessableEntity)
+	}
+
+	db, err := postgres.NewConnectDB()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer db.Close()
+
+	updatedSong, err := db.UpdateSong(song.Id, song.SongName, song.GroupId, song.Text, song.Link, song.Date)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(
+		Song{
+			Id:       updatedSong.Id,
+			SongName: updatedSong.SongName,
+			GroupId:  updatedSong.GroupId,
+			Text:     updatedSong.Text,
+			Link:     updatedSong.Link,
+			Date:     updatedSong.Date,
+		},
+	); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func RequestSong(group, song string) (*InfoSong, error) {

@@ -10,11 +10,12 @@
 package server
 
 type Song struct {
-	Id      string `json:"id,omitempty"`
-	GroupId string `json:"group_id,omitempty"`
-	Text    string `json:"text,omitempty"`
-	Link    string `json:"link,omitempty"`
-	Date    string `json:"date,omitempty"`
+	Id       string `json:"id,omitempty"`
+	SongName string `json:"song_name,omitempty"`
+	GroupId  string `json:"group_id,omitempty"`
+	Text     string `json:"text,omitempty"`
+	Link     string `json:"link,omitempty"`
+	Date     string `json:"date,omitempty"`
 }
 
 type InfoAddSong struct {

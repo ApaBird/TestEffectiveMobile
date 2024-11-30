@@ -56,27 +56,6 @@ var routes = Routes{
 	},
 
 	Route{
-		"AddGroup",
-		strings.ToUpper("Post"),
-		"/group",
-		AddGroup,
-	},
-
-	Route{
-		"GetGroup",
-		strings.ToUpper("Get"),
-		"/group",
-		GetGroup,
-	},
-
-	Route{
-		"UpdateGroup",
-		strings.ToUpper("Put"),
-		"/group",
-		UpdateGroup,
-	},
-
-	Route{
 		"AddSong",
 		strings.ToUpper("Post"),
 		"/song",

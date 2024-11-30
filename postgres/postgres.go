@@ -8,20 +8,24 @@ type ConnectDB struct {
 	db *sql.DB
 }
 
-func NewConnectDB() *ConnectDB {
+func NewConnectDB() (*ConnectDB, error) {
 	config, err := LoadConfig()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	db, err := sql.Open("postgres", prepareConnectionString(config))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return &ConnectDB{db: db}
+	return &ConnectDB{db: db}, nil
 }
 
 func prepareConnectionString(config *DBConfig) string {
 	return "host=" + config.Host + " port=" + config.Port + " user=" + config.User + " password=" + config.Password + " dbname=" + config.DBName + " sslmode=" + config.Sslmode
+}
+
+func (c *ConnectDB) Close() error {
+	return c.db.Close()
 }

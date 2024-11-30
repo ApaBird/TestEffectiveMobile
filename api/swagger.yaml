@@ -115,82 +115,6 @@ paths:
           description: Invalid input
         "422":
           description: Validation exception
-  /group:
-    get:
-      tags:
-      - group
-      summary: Получение песни по id
-      description: Получение песни по id
-      operationId: get group
-      parameters:
-      - name: id
-        in: query
-        description: id песни
-        required: true
-        style: form
-        explode: true
-        schema:
-          type: string
-          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-        "400":
-          description: Не указа ID песни
-        "404":
-          description: Песня не найдена
-    put:
-      tags:
-      - group
-      summary: Update an existing group
-      description: Update an existing group by Id
-      operationId: updateGroup
-      requestBody:
-        description: Update an existent group in the store
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Group'
-        required: true
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-        "400":
-          description: Invalid ID supplied
-        "404":
-          description: group not found
-    post:
-      tags:
-      - group
-      summary: Добавление новой песни
-      description: Добавление новой песни
-      operationId: addGroup
-      requestBody:
-        description: Информация для создания песни
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Group'
-        required: true
-      responses:
-        "200":
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Group'
-        "400":
-          description: Invalid input
-        "422":
-          description: Validation exception
   /songList:
     get:
       tags:
@@ -218,14 +142,14 @@ paths:
           type: integer
           example: 10
           default: 20
-      - name: songId
+      - name: songName
         in: query
         required: false
         style: form
         explode: true
         schema:
           type: string
-          example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+          example: "Песня"
       - name: groupId
         in: query
         required: false
@@ -258,6 +182,18 @@ paths:
         schema:
           type: string
           example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+      - name: dateStart
+        in: query
+        required: false
+        schema:
+          type: string
+          example: 16.07.2006
+      - name: dateEnd
+        in: query
+        required: false
+        schema:
+          type: string
+          example: 16.07.2006
       responses:
         "200":
           description: Successful operation
@@ -280,6 +216,9 @@ components:
         id:
           type: string
           example: b76554bc-2c66-4de0-96e8-dcd2f10fd365
+        songName:
+          type: string
+          example: Песня
         group_id:
           type: string
           example: d76554bc-2c66-4de0-96e8-dcd2f10fd365
@@ -289,6 +228,10 @@ components:
         link:
           type: string
           example: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+        date:
+          type: string
+          format: date
+          example: 16.07.2006
       example:
         group_id: d76554bc-2c66-4de0-96e8-dcd2f10fd365
         link: https://www.youtube.com/watch?v=dQw4w9WgXcQ
